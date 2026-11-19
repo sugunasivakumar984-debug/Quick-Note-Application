@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quick Note Application</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Quick Note Application</h1>
+
+    <textarea id="note"
+        placeholder="Write your note here..."></textarea>
+
+    <button onclick="saveNote()">Save Note</button>
+
+    <h2>Saved Notes</h2>
+
+    <div id="notes"></div>
+
+</div>
+
+<script>
+
+async function saveNote() {
+
+    let content = document.getElementById("note").value;
+
+    if (!content.trim()) {
+        alert("Please write a note!");
+        return;
+    }
+
+    let response = await fetch('/save', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({content: content})
+    });
+
+    let result = await response.json();
+
+    alert(result.message);
+
+    document.getElementById("note").value = "";
+
+    loadNotes();
+}
+
+async function loadNotes() {
+
+    let response = await fetch('/notes');
+
+    let notes = await response.json();
+
+    let output = "";
+
+    notes.forEach(note => {
+        output += `<div class="note">${escapeHTML(note.content)}</div>`;
+    });
+
+    document.getElementById("notes").innerHTML = output;
+}
+
+function escapeHTML(text) {
+    return text.replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    })[char]);
+}
+
+loadNotes();
+
+</script>
+
+</body>
+</html>
